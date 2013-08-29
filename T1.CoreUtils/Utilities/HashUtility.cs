@@ -8,32 +8,35 @@ namespace T1.CoreUtils
 {
 	public class HashUtility
 	{
-		public enum SupportedMethods
+		public static string GenerateSaltBase64(int bytes = 64)
 		{
-			SHA512 = 0 //Current Default
-		}
-
-		public static byte[] GenerateSalt()
-		{
-			var ret = new byte[64]; //512bit random salt value
+			var ret = new byte[bytes]; //512bit random salt value
 			System.Security.Cryptography.RNGCryptoServiceProvider.Create().GetNonZeroBytes(ret);
-			return ret;
+			return Convert.ToBase64String(ret);
 		}
 
-		public static byte[] CreateHash(SupportedMethods method, byte[] salt, string input)
-		{
-			//input normalization
-			if (salt == null || salt.Length == 0) salt = new byte[0];
-			if (string.IsNullOrWhiteSpace(input)) input = "";
-			input = input.Trim();
+        public static string HashSha512(string input, string saltBase64)
+        {
+            byte[] salt = string.IsNullOrWhiteSpace(saltBase64) ? new byte[0] : Convert.FromBase64String(saltBase64);
+            if (string.IsNullOrWhiteSpace(input)) input = "";
+            input = input.Trim();
+            return Convert.ToBase64String(CreateHash_SHA512(salt, input));
+        }
 
-			switch (method)
-			{
-				case SupportedMethods.SHA512:
-					return CreateHash_SHA512(salt, input);
-			}
-			return null; //invalid method
-		}
+        public static string HashSCrypt(string input, string saltBase64)
+        {
+            byte[] salt = string.IsNullOrWhiteSpace(saltBase64) ? new byte[0] : Convert.FromBase64String(saltBase64);
+            if (string.IsNullOrWhiteSpace(input)) input = "";
+            input = input.Trim();
+            return Convert.ToBase64String(CreateHash_SCrypt(salt, input));
+        }
+
+
+        private static byte[] CreateHash_SCrypt(byte[] salt, string input)
+        {
+            var ret = CryptSharp.Utility.SCrypt.ComputeDerivedKey(Encoding.UTF8.GetBytes(input), salt, 1024, 8, 1, null, 64);
+            return ret;
+        }
 
 		private static byte[] CreateHash_SHA512(byte[] salt, string input)
 		{
@@ -46,5 +49,22 @@ namespace T1.CoreUtils
 			return System.Security.Cryptography.SHA512Managed.Create().ComputeHash(merged);
 		}
 
+        private static byte[] MergeInput(byte[] salt, string input)
+        {
+            var binput = System.Text.Encoding.UTF8.GetBytes(input);
+            byte[] merged;
+            if (salt == null)
+            {
+                merged = binput;
+            }
+            else
+            {
+                merged = new byte[salt.Length + binput.Length];
+                salt.CopyTo(merged, 0);
+                binput.CopyTo(merged, salt.Length);
+            }
+
+            return merged;
+        }
 	}
 }

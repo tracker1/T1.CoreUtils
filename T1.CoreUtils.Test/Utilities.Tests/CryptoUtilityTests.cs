@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace T1.CoreUtils.Test.Utilities.Tests
 {
     [TestClass]
-    public class UnitTest1
+    public class CryptoUtilityTests
     {
         [TestMethod]
         public void EncryptReturnsExpectedValue1_unicode_in_plaintext()

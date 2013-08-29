@@ -50,8 +50,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Utilities.Tests\UnitTest1.cs" />
+    <Compile Include="Utilities.Tests\CryptoUtilityTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities.Tests\HashUtilityTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\T1.CoreUtils\T1.CoreUtils.csproj">
