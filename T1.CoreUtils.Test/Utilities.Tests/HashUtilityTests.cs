@@ -20,7 +20,7 @@ namespace T1.CoreUtils.Test.Utilities.Tests
         {
             var plain = "This is î╥≤ what it is.";
             var encodedBase64 = HashUtility.HashSCrypt(plain, null);
-            var expectedBase64 = "h5MvzhswjghT7wGiq97n9nBN8Ey3jNMynrTploAl95AI+1Tu7aI6Jy7AWPT/XCwHLiAxGfSQsgl5mIbEe4A1/Q==";
+            var expectedBase64 = "XzjdgY+VbzIiT157VMAClCtimhFk0exI36PNY0SygEH93SXsh9aVuGbvM+g5W7sBV8GFlMvgCwwwUlMAPd+6XQ==";
             Assert.AreEqual(encodedBase64, expectedBase64);
         }
     }

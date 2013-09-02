@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace T1.CoreUtils
+namespace T1.CoreUtils.Entities
 {
     public class HashUtility
     {
@@ -16,7 +16,7 @@ namespace T1.CoreUtils
 
         internal static byte[] CreateHash(SupportedMethods method, string password, byte[] salt)
         {
-            var pwd = Encoding.UTF8.GetBytes(password ?? "");
+            var pwd = Encoding.UTF8.GetBytes((password ?? "").Trim());
             if (salt == null) salt = new byte[0];
             switch (method)
             {

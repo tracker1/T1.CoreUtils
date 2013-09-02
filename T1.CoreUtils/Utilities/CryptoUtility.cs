@@ -14,18 +14,36 @@ namespace T1.CoreUtils.Utilities
          *  http://stackoverflow.com/questions/18502375/aes256-encryption-decryption-in-both-nodejs-and-c-sharp-net/
          *  http://stackoverflow.com/questions/12261540/decrypting-aes256-encrypted-data-in-net-from-node-js-how-to-obtain-iv-and-key
          *  http://stackoverflow.com/questions/8008253/c-sharp-version-of-openssl-evp-bytestokey-method
-         *  
+         */
+
+        /* EncrypteDefault - as NodeJS
          * var cipher = crypto.createCipher('aes-256-cbc', 'passphrase');
          * var encrypted = cipher.update("test", 'utf8', 'base64') + cipher.final('base64');
-         * 
+         */
+        public static string EncryptDefault(string input, string passphrase = null)
+        {
+            byte[] key, iv;
+            PassphraseToDefaultKeyAndIV(RawBytesFromString(passphrase), null, 1, out key, out iv);
+
+            return Convert.ToBase64String(EncryptStringToBytes(input, key, iv));
+        }
+
+        /* DecryptDefault - as NodeJS
          * var decipher = crypto.createDecipher('aes-256-cbc', 'passphrase');
          * var plain = decipher.update(encrypted, 'base64', 'utf8') + decipher.final('utf8');
          */
+        public static string DecryptDefault(string inputBase64, string passphrase = null)
+        {
+            byte[] key, iv;
+            PassphraseToDefaultKeyAndIV(RawBytesFromString(passphrase), null, 1, out key, out iv);
+
+            return DecryptStringFromBytes(Convert.FromBase64String(inputBase64), key, iv);
+        }
 
         public static string Encrypt(string input, string passphrase = null)
         {
             byte[] key, iv;
-            DeriveKeyAndIV(RawBytesFromString(passphrase), null, 1, out key, out iv);
+            PassphraseToSCryptKeyAndIV(passphrase, out key, out iv);
 
             return Convert.ToBase64String(EncryptStringToBytes(input, key, iv));
         }
@@ -33,12 +51,13 @@ namespace T1.CoreUtils.Utilities
         public static string Decrypt(string inputBase64, string passphrase = null)
         {
             byte[] key, iv;
-            DeriveKeyAndIV(RawBytesFromString(passphrase), null, 1, out key, out iv);
+            PassphraseToSCryptKeyAndIV(passphrase, out key, out iv);
 
             return DecryptStringFromBytes(Convert.FromBase64String(inputBase64), key, iv);
+
         }
 
-        private static byte[] RawBytesFromString(string input)
+        static byte[] RawBytesFromString(string input)
         {
             var ret = new List<Byte>();
 
@@ -51,7 +70,16 @@ namespace T1.CoreUtils.Utilities
             return ret.ToArray();
         }
 
-        private static void DeriveKeyAndIV(byte[] data, byte[] salt, int count, out byte[] key, out byte[] iv)
+        public static void PassphraseToSCryptKeyAndIV(string passphrase, out byte[] key, out byte[] iv)
+        {
+            var hashList = HashUtility.HashSCrypt(Encoding.UTF8.GetBytes(passphrase)).ToList();
+            key = new byte[32];
+            iv = new byte[16];
+            hashList.CopyTo(0, key, 0, 32);
+            hashList.CopyTo(32, iv, 0, 16);
+        }
+
+        public static void PassphraseToDefaultKeyAndIV(byte[] data, byte[] salt, int count, out byte[] key, out byte[] iv)
         {
             List<byte> hashList = new List<byte>();
             byte[] currentHash = new byte[0];
@@ -99,7 +127,7 @@ namespace T1.CoreUtils.Utilities
             hashList.CopyTo(32, iv, 0, 16);
         }
 
-        static byte[] EncryptStringToBytes(string plainText, byte[] Key, byte[] IV)
+        public static byte[] EncryptStringToBytes(string plainText, byte[] Key, byte[] IV)
         {
             // Check arguments. 
             if (plainText == null || plainText.Length <= 0)
@@ -126,9 +154,8 @@ namespace T1.CoreUtils.Utilities
                 {
                     using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
                     {
-                        using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                        using (StreamWriter swEncrypt = new StreamWriter(csEncrypt, Encoding.UTF8))
                         {
-
                             //Write all data to the stream.
                             swEncrypt.Write(plainText);
                         }
@@ -143,7 +170,7 @@ namespace T1.CoreUtils.Utilities
 
         }
 
-        static string DecryptStringFromBytes(byte[] cipherText, byte[] Key, byte[] IV)
+        public static string DecryptStringFromBytes(byte[] cipherText, byte[] Key, byte[] IV)
         {
             // Check arguments. 
             if (cipherText == null || cipherText.Length <= 0)
@@ -174,7 +201,7 @@ namespace T1.CoreUtils.Utilities
                 {
                     using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
                     {
-                        using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                        using (StreamReader srDecrypt = new StreamReader(csDecrypt, Encoding.UTF8))
                         {
 
                             // Read the decrypted bytes from the decrypting stream 
