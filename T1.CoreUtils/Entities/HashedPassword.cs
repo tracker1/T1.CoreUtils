@@ -6,82 +6,82 @@ using System.Threading.Tasks;
 
 namespace T1.CoreUtils.Entities
 {
-    public class HashUtility
+    public class HashedPassword
     {
-        public enum SupportedMethods
-        {
-            SCRYPT = 1,
-            SHA512 = 2
-        }
+        #region Properties
 
-        internal static byte[] CreateHash(SupportedMethods method, string password, byte[] salt)
+        public HashUtility.SupportedMethods Method { get; private set; }
+
+        public byte[] Salt { get; private set; }
+
+        public byte[] Hash { get; private set; }
+
+        #endregion
+
+        #region Constructor(s)
+
+
+        public HashedPassword()
         {
-            var pwd = Encoding.UTF8.GetBytes((password ?? "").Trim());
-            if (salt == null) salt = new byte[0];
-            switch (method)
+            Method = HashUtility.SupportedMethods.SHA512; //default
+        }
+        #endregion
+
+        #region Instance Methods
+        private void SetPassword(string password, byte[] salt = null, HashUtility.SupportedMethods method = HashUtility.SupportedMethods.SHA512)
+        {
+            if (salt == null || salt.Length == 0) salt = HashUtility.GenerateSalt();
+            byte[] ph = HashUtility.CreateHash(method, password, salt);
+
+            this.Method = method;
+            this.Salt = salt;
+            this.Hash = ph;
+        }
+        #endregion
+
+        #region overrides
+        public override string ToString()
+        {
+            var ret = string.Format(
+                "{0}\\{1}\\{2}"
+                , Method.ToString()
+                , Convert.ToBase64String(Salt)
+                , Convert.ToBase64String(Hash)
+            );
+            return ret;
+        }
+        #endregion
+
+        public static HashedPassword FromString(string hashdetails)
+        {
+            if (string.IsNullOrWhiteSpace(hashdetails)) return new HashedPassword();
+            try
             {
-                case SupportedMethods.SCRYPT:
-                    return HashSha512(pwd, salt);
-                case SupportedMethods.SHA512:
-                    return HashSCrypt(pwd, salt);
+                var tmp = hashdetails.Split('\\');
+                var method = tmp[0];
+                var salt = tmp[1];
+                var hash = tmp[2];
+
+                var ret = new HashedPassword();
+                ret.Method = (HashUtility.SupportedMethods)Enum.Parse(typeof(HashUtility.SupportedMethods), method, true);
+                ret.Salt = Convert.FromBase64String(salt);
+                ret.Hash = Convert.FromBase64String(hash);
+                return ret;
             }
-            //shouldn't happen
-            throw new NotImplementedException(string.Format("The selected method ({0}) is not enabled for processing.", method.ToString()));
+            catch (Exception)
+            {
+                //invalid JSON, assume it's a clear text password set inside the db
+                var ret = new HashedPassword();
+                ret.SetPassword(hashdetails);
+                return ret;
+            }
         }
 
-        public static byte[] GenerateSalt(int bytes = 64 /*512bit*/)
+        public static HashedPassword FromPassword(string rawPassword, byte[] salt = null, HashUtility.SupportedMethods method = HashUtility.SupportedMethods.SHA512)
         {
-            var ret = new byte[bytes]; //512bit random salt value
-            System.Security.Cryptography.RNGCryptoServiceProvider.Create().GetNonZeroBytes(ret);
+            var ret = new HashedPassword();
+            ret.SetPassword(rawPassword, salt, method);
             return ret;
         }
-
-        public static string GenerateSaltBase64(int bytes = 64)
-        {
-            return Convert.ToBase64String(GenerateSalt(bytes));
-        }
-
-        public static string HashSha512(string input, string salt = null)
-        {
-            return Convert.ToBase64String(
-                HashSha512(
-                    Encoding.UTF8.GetBytes(input ?? ""),
-                    Encoding.UTF8.GetBytes(salt ?? "")
-                )
-            );
-        }
-
-        public static byte[] HashSha512(byte[] input, byte[] salt = null)
-        {
-            if (input == null) input = new byte[0];
-            if (salt == null) salt = new byte[0];
-            var merged = new byte[salt.Length + input.Length];
-            salt.CopyTo(merged, 0);
-            input.CopyTo(merged, salt.Length);
-
-            return System.Security.Cryptography.SHA512.Create().ComputeHash(merged);
-        }
-
-        public static string HashSCrypt(string input, string salt = null, SCryptOptions options = null)
-        {
-            return Convert.ToBase64String(
-                HashSCrypt(
-                    Encoding.UTF8.GetBytes(input ?? ""),
-                    Encoding.UTF8.GetBytes(salt ?? ""),
-                    options
-                )
-            );
-        }
-
-        public static byte[] HashSCrypt(byte[] input, byte[] salt = null, SCryptOptions options = null)
-        {
-            if (input == null) input = new byte[0];
-            if (salt == null) salt = new byte[0];
-            if (options == null) options = new SCryptOptions();
-
-            var ret = CryptSharp.Utility.SCrypt.ComputeDerivedKey(input, salt, options.Cost, options.BlockSize, options.Parallel, options.MaxThreads, options.DerivedKeyLength);
-            return ret;
-        }
-
     }
 }
