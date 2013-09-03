@@ -16,7 +16,7 @@ namespace T1.CoreUtils
 
         internal static byte[] CreateHash(SupportedMethods method, string password, byte[] salt)
         {
-            var pwd = Encoding.UTF8.GetBytes(password ?? "");
+            var pwd = Encoding.UTF8.GetBytes((password ?? "").Trim());
             if (salt == null) salt = new byte[0];
             switch (method)
             {

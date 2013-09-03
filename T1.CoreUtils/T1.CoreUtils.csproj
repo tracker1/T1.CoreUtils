@@ -51,6 +51,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Authorization\AuthConfig.cs" />
+    <Compile Include="Authorization\LoginOrganization.cs" />
+    <Compile Include="Authorization\LoginTicket.cs" />
+    <Compile Include="Authorization\LoginUser.cs" />
+    <Compile Include="Authorization\UserRole.cs" />
     <Compile Include="Entities\HashedPassword.cs" />
     <Compile Include="Entities\SerialError.cs" />
     <Compile Include="Extensions\CollectionExtensions.cs" />

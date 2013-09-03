@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,11 +14,14 @@ namespace T1.CoreUtils
         public const int DefaultDerivedKeyLength = 64;
 
         private int? _Cost = null;
-        public int Cost {
-            get {
+        public int Cost
+        {
+            get
+            {
                 return _Cost ?? DefaultCost;
             }
-            set {
+            set
+            {
                 _Cost = CheckCost(value);
             }
         }
@@ -76,7 +78,8 @@ namespace T1.CoreUtils
             }
         }
 
-        private int? CheckCost(int input) {
+        private int? CheckCost(int input)
+        {
             if (input < 256) return null;
             if (input > Math.Pow(2, 64)) return null;
             for (var m = 8; m <= 64; m++)
@@ -88,13 +91,15 @@ namespace T1.CoreUtils
             return null;
         }
 
-        private int? CheckNumber(int input) {
+        private int? CheckNumber(int input)
+        {
             if (input < 1) return null;
             if (input > 256) return null;
             return input;
         }
 
-        private int? CheckLength(int input) {
+        private int? CheckLength(int input)
+        {
             if (input < 1) return null;
             if (input > 2048) return null;
             return input;

@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using T1.CoreUtils.Entities;
 
 namespace T1.CoreUtils
 {
@@ -59,12 +60,6 @@ namespace T1.CoreUtils
             return JObject.Parse(input);
         }
 
-		public static JToken ParseToken(string input)
-		{
-			if (string.IsNullOrWhiteSpace(input)) return null;
-			return JToken.Parse(input);
-		}
-
         public static JObject ToJObject(object input)
         {
             try
@@ -87,7 +82,7 @@ namespace T1.CoreUtils
                 //if the original was an exception, convert to SerialError...
                 if (input as Exception != null)
                 {
-                    var ret = JObject.FromObject(Entities.SerialError.FromObject(input), GetJsonSerializer());
+                    var ret = JObject.FromObject(SerialError.FromObject(input), GetJsonSerializer());
                     ret["__CONVERTED"] = new JValue("Converted to a SerialError");
                     ret["__CONVERTED_REASON"] = new JValue(ex.Message);
                     return ret;
@@ -112,7 +107,7 @@ namespace T1.CoreUtils
 
         private static JObject HandleError(object input)
         {
-            var ex = Entities.SerialError.FromObject(input);
+            var ex = SerialError.FromObject(input);
             if (ex == null) return null;
 
             var ret = ToJObject(ex);

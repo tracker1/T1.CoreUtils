@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace T1.CoreUtils.Utilities
+namespace T1.CoreUtils
 {
     public static class CryptoUtility
     {
@@ -136,7 +136,7 @@ namespace T1.CoreUtils.Utilities
                 throw new ArgumentNullException("Key");
             if (IV == null || IV.Length <= 0)
                 throw new ArgumentNullException("Key");
-            
+
             // Create an RijndaelManaged object 
             // with the specified key and IV. 
             using (RijndaelManaged cipher = new RijndaelManaged())
